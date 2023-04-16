@@ -1,0 +1,54 @@
+version: "3"
+
+services:
+  wordpress:
+    image: wordpress
+    restart: 'no'
+    ports:
+      - 8090:80
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: ${DB_USER}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+      WORDPRESS_DB_NAME: ${DB_NAME}
+    depends_on:
+      - db
+    volumes:
+      - ./wp:/var/www/html
+      - ./config/php.ini-development:/usr/local/etc/php/php.ini-development
+      - ./config/php.ini-production:/usr/local/etc/php/php.ini-production
+    links:
+      - db
+    env_file: '.env'
+
+  db:
+    image: mysql:5.7
+    platform: linux/amd64
+    restart: 'no'
+    environment:
+      MYSQL_DATABASE:  ${DB_NAME}
+      MYSQL_USER:  ${DB_USER}
+      MYSQL_PASSWORD:  ${DB_PASSWORD}
+      MYSQL_RANDOM_ROOT_PASSWORD: "1"
+    volumes:
+      - db:/var/lib/mysql
+    env_file: '.env'
+    
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: pma
+    links:
+      - db
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    restart: always
+    ports:
+      - 8092:80
+    env_file: '.env'
+    
+volumes:
+  db:
+  wordpress:
